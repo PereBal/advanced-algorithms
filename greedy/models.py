@@ -3,7 +3,7 @@
 #  |
 #  +-> to: list of nodes (from node list) where the current node goes
 #  +-> by: weight of the connections to nodes on 'to' list
-
+from heapq import heapify, heappush, heappop
 UNREACHABLE = -1
 
 class AdjacenceMatrix(list):
@@ -20,12 +20,6 @@ class AdjacenceMatrix(list):
 
         super(AdjacenceMatrix, self).__init__(matrix)
 
-    def first(self, node):
-        if node > len(self):
-            raise IndexError('{i} is out of bounds on {self}'.format(i=node+1,
-                                                                     self=self))
-        return self[node]
-
     def get_children(self, node):
         return self[node]
 
@@ -37,30 +31,24 @@ class DistanceTable:
     def __init__(self, adjacence_matrix, origin):
         if isinstance(adjacence_matrix, AdjacenceMatrix):
             self.distances = list(adjacence_matrix.get_children(origin))
-            self.visited = set()
         else:
             raise RuntimeError('AdjacenceMatrix instance expected, got {}'
                                ''.format(type(adjacence_matrix)))
 
-    def visit(self, node):
-        self.visited.add(node)
+    # Because of ugliness
+    def _valid(self, idx, distance):
+        return (self.distances[idx] == UNREACHABLE or
+                distance <= self.distances[idx])
 
-    def update(self, adjacence_matrix, node):
-        # Already visited candidate (i should fix this xD)
-        if node in self.visited:
-            return []
-
+    def get_and_update(self, adjacence_matrix, node):
         current_distance = self.distances[node]
         for idx, next_distance in enumerate(adjacence_matrix.get_children(node)):
-
             distance = current_distance + next_distance
-            if (idx != node and next_distance != UNREACHABLE and
-                    idx not in self.visited):
 
-                if (self.distances[idx] == UNREACHABLE or
-                        distance <= self.distances[idx]):
-                    self.distances[idx] = distance
-                    yield (distance, idx)
+            if (idx != node and next_distance != UNREACHABLE and
+                    self._valid(idx, distance)):
+                self.distances[idx] = distance
+                yield (distance, idx)
 
     def min_path(self, adjacence_matrix, origin, destination):
         if origin == destination:
@@ -78,3 +66,32 @@ class DistanceTable:
 
         # goddamn magic
         return path[::-1]
+
+
+class Heap:
+    def __init__(self, iterable, first):
+        self.items = list(iterable)
+        self.len = len(self.items)
+        heapify(self.items)
+
+        self.visited = set([first])
+
+    def get_min(self):
+        if self.len > 0:
+            goto = heappop(self.items)[1]
+            self.len -= 1
+
+            while goto in self.visited and self.len > 0:
+                goto = heappop(self.items)[1]
+                self.len -= 1
+
+            return None if goto in self.visited else goto
+        else:
+            return None
+
+    def add(self, iterable, node):
+        for elem in iterable:
+            heappush(self.items, elem)
+            self.len += 1
+
+        self.visited.add(node)
