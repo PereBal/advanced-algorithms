@@ -76,7 +76,7 @@ class Heap:
 
         self.visited = set([first])
 
-    def get_min(self):
+    def pop_min(self):
         if self.len > 0:
             goto = heappop(self.items)[1]
             self.len -= 1

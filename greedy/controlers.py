@@ -25,7 +25,7 @@ def run(fname, first, destination):
     candidates = Heap(dtable.get_and_update(matrix, first), first)
 
     while candidates.len > 0:
-        goto = candidates.get_min()
+        goto = candidates.pop_min()
         if goto is None or goto == destination:
             break
         candidates.add(dtable.get_and_update(matrix, goto), goto)
