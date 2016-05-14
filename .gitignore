@@ -1,0 +1,9 @@
+# Ignore swap files
+*.sw[po]
+
+# Ignore compiled files
+*.py[co]
+
+# Ignore special dirs
+__pycache__
+.env
