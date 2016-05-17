@@ -5,16 +5,16 @@ def read(fname):
         raise Exception('Unable to locate file {fname}'.format(**locals()))
 
     elif os.path.splitext(fname)[1] != '.json':
-        raise Exception('Unkown format, json expected'.format(**locals()))
+        raise Exception('Unkown format, JSON expected'.format(**locals()))
 
     with open(fname, 'rt') as fd:
         return json.load(fd)
 
-def parse(content):
+def parse(data):
     # -> Dimension, parsed_content
     # TODO parse format
-    dim = len(content['nodes'])
-    return dim, content
+    dim = len(data['nodes'])
+    return dim, data
 
 def run(fname, first, destination):
     from heapq import heapify, heappush, heappop
