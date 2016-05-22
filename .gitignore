@@ -7,3 +7,5 @@
 # Ignore special dirs
 __pycache__
 .env
+training_sets
+validation_sets

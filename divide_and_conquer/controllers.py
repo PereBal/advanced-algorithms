@@ -1,4 +1,6 @@
 import math
+import sys
+
 from models import Point, PointList, SortedPointList
 
 def read(fname):
@@ -17,7 +19,6 @@ def parse(data):
     return [Point(**point_tuple) for point_tuple in data['points']]
 
 def min_distance_O2(points):
-    import sys
     plen = len(points)
     min_dist = sys.maxsize-1
     for i, point1 in enumerate(points):
@@ -43,15 +44,17 @@ def combine(points, min_set1, min_set2, idxmin, half, idxmax):
     # Disclaimer, half not included in range
     for i in reversed(range(idxmin, half)):
         point = points[i]
-        if point.distance(half_point) > dmin:
+        if point.distance(half_point) <= dmin:
+            candidates.append(point)
+        else:
             break
-        candidates.append(point)
 
     for i in range(half, idxmax+1):
         point = points[i]
-        if half_point.distance(point) > dmin:
+        if half_point.distance(point) <= dmin:
+            candidates.append(point)
+        else:
             break
-        candidates.append(point)
 
     return min_distance_O2(candidates)
 
@@ -66,17 +69,16 @@ def _min_distance_Olog(points, idxmin, idxmax):
                        _min_distance_Olog(points, half, idxmax),
                        idxmin, half, idxmax)
 
-
 def min_distance_Olog(points):
     return _min_distance_Olog(points, 0, len(points)-1)
-
 
 def run(fname, mode):
     if mode == 'O2':
         points_o2 = PointList(parse(read(fname)))
         return min_distance_O2(points_o2)
-    else:
-        # Fuck off man sort(parse(read())) -_-
+    elif mode == 'Olog':
         points_olog = SortedPointList(parse(read(fname)))
         return min_distance_Olog(points_olog)
+    else:
+        raise Exception('bye')
 
