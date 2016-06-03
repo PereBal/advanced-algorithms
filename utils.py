@@ -20,3 +20,37 @@ def set_environment():
         raise RuntimeError('Virtualenv not found at {env_path}.'
                            ''.format(**locals()))
     # END virtualenv dynamic import
+
+
+def load_ui_form(basedir, name):
+    # XXX We're assuming here max-depth of 1 package
+    from importlib import import_module
+    # Only 1 form per file!
+    module = import_module(basedir + '.' + name)
+    for key, value in module.__dict__.items():
+        if key.startswith('Ui'):
+            return value
+    raise Exception('Malformed UI file')
+
+
+def compile_if_needed(fpath):
+    # XXX We're assuming here max-depth of 1 package
+    import os
+    from PyQt5.uic import compileUi
+    path = os.path.dirname(fpath)
+    package = os.path.basename(path)
+    name = os.path.splitext(os.path.basename(fpath))[0]
+    ui_name = name + '.ui'
+    module = name + '_ui'
+    with open(os.path.join(path, module + '.py'), 'w') as fd:
+        compileUi(os.path.join(path, ui_name), fd)
+
+    return (package, module)
+
+def pyqt_set_trace():
+    '''Set a tracepoint in the Python debugger that works with Qt'''
+    from PyQt5.QtCore import pyqtRemoveInputHook
+
+    from pdb import set_trace
+    pyqtRemoveInputHook()
+    set_trace()
