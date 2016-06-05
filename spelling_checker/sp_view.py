@@ -1,11 +1,12 @@
-from queue import Empty
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from base import BaseWidgetView
 
 from spelling_checker.ui_sp_view import Ui_SpCheckerWidget
 
-class SpCheckerView(QtWidgets.QWidget):
+class SpCheckerView(BaseWidgetView):
     def __init__(self, parent, *args, **kwargs):
-        super(SpCheckerView, self).__init__(parent)
+        super(SpCheckerView, self).__init__(parent, *args, **kwargs)
         self.setup_ui()
 
     @classmethod
