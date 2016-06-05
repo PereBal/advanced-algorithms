@@ -7,6 +7,12 @@
 # Ignore pyuic files
 ui_*.py
 
+# Ignore other stuff
+*.png
+*.jpg
+*.jpe
+*.jpeg
+
 # Ignore special dirs
 __pycache__
 .env
