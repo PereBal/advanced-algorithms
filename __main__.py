@@ -8,7 +8,7 @@ else:
 
     from PyQt5 import QtWidgets
 
-    from controllers import MainController
+    from controller import MainController
     from main_view import MainView
 
     class MainApp(QtWidgets.QApplication):

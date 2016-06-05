@@ -33,8 +33,7 @@ class MainView(QtWidgets.QMainWindow):
                 self.resize(self._old_size)
                 self._old_size = None
 
-            if hasattr(instance, 'pre_switch'):
-                instance.pre_switch()
+            instance.controller.pre_switch()
 
             self.ui.stackedWidget.setCurrentWidget(instance)
 
@@ -48,7 +47,8 @@ class MainView(QtWidgets.QMainWindow):
         for instance in self.instances.values():
             self.ui.stackedWidget.addWidget(instance)
 
-        func = {key: partial(self.switch_to, key) for key in self.WIDGETS}
+        func = {widget: partial(self.switch_to, widget)
+                for widget in self.WIDGETS}
 
         self.ui.action_queens.triggered.connect(func['QU'])
         self.ui.action_dc.triggered.connect(func['DC'])
