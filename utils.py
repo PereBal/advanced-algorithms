@@ -41,7 +41,7 @@ def compile_if_needed(fpath):
     package = os.path.basename(path)
     name = os.path.splitext(os.path.basename(fpath))[0]
     ui_name = name + '.ui'
-    module = name + '_ui'
+    module = 'ui_' + name
     with open(os.path.join(path, module + '.py'), 'w') as fd:
         compileUi(os.path.join(path, ui_name), fd)
 

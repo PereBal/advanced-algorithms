@@ -1,18 +1,24 @@
 if __name__ != '__main__':
     raise Exception('Wrong use mutherfucker, unimportable module!')
 else:
-    from utils import set_environment; set_environment()
+    import sys
 
-import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow)
+    from utils import set_environment
+    set_environment()
 
-class MainForm(QMainWindow):
-    def __init__(self, parent=None):
-        super(MainForm, self).__init__(parent)
+    from PyQt5 import QtWidgets
 
-app = QApplication(sys.argv)
+    from controllers import MainController
+    from main_view import MainView
 
-screen = MainForm()
-screen.show()
+    class MainApp(QtWidgets.QApplication):
+        def __init__(self, sys_argv):
+            super(MainApp, self).__init__(sys_argv)
 
-sys.exit(app.exec_())
+            self.controller = MainController()
+            # The view will instantiate each subview?
+            self.view = MainView(self.controller)
+            self.view.show()
+
+    app = MainApp(sys.argv)
+    sys.exit(app.exec_())
