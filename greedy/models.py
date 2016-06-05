@@ -1,6 +1,7 @@
 # JSON EXPECTED FORMAT
 # [nodes]
 #  |
+#  +-> id
 #  +-> to: list of nodes (from node list) where the current node goes
 #  +-> by: weight of the connections to nodes on 'to' list
 from heapq import heapify, heappush, heappop
@@ -19,6 +20,10 @@ class AdjacenceMatrix(list):
                 matrix[node][conn] = by[idx]
 
         super(AdjacenceMatrix, self).__init__(matrix)
+
+    @property
+    def dimension(self):
+        return len(self[0])
 
     def get_children(self, node):
         return self[node]
