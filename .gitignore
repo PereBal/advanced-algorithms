@@ -4,6 +4,9 @@
 # Ignore compiled files
 *.py[co]
 
+# Ignore pyuic files
+ui_*.py
+
 # Ignore special dirs
 __pycache__
 .env
