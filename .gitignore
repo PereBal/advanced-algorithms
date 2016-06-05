@@ -12,6 +12,7 @@ ui_*.py
 *.jpg
 *.jpe
 *.jpeg
+*.dot
 
 # Ignore special dirs
 __pycache__
