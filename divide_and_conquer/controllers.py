@@ -1,6 +1,7 @@
 import math
 import sys
 
+from multiprocessing import Process, Queue
 from models import Point, PointList, SortedPointList
 
 def read(fname):
@@ -72,7 +73,7 @@ def _min_distance_Olog(points, idxmin, idxmax):
 def min_distance_Olog(points):
     return _min_distance_Olog(points, 0, len(points)-1)
 
-def run(fname, mode):
+def run(queue, fname):
     if mode == 'O2':
         points_o2 = PointList(parse(read(fname)))
         return min_distance_O2(points_o2)
@@ -81,4 +82,11 @@ def run(fname, mode):
         return min_distance_Olog(points_olog)
     else:
         raise Exception('bye')
+
+def dispatch(fnames):
+    queue = Queue()
+    for sample, fname in enumerate(fnames):
+        process = Process(target=run, args=(queue, fname))
+        process.start()
+
 
