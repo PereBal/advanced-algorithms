@@ -80,6 +80,27 @@ class GreedyController(BaseController):
     def get_instance(cls, view):
         return cls(view)
 
+    def pre_switch(self):
+        if self._file != 'None':
+            self.view.notify({
+                'func': 'reload_graph',
+                'data': {}
+            })
+
+    def start(self):
+        fname = self._file
+        origin = self.view.origin
+        destination = self.view.destination
+        path = self.run(fname, origin, destination)
+        # Notify the view
+        self.view.notify({
+            'func': 'display_graph',
+            'data': {
+                'path': path,
+            }
+        })
+
+
     @staticmethod
     def run(fname, origin, destination):
         if  origin < 0 or origin == destination:
@@ -100,13 +121,6 @@ class GreedyController(BaseController):
     def to_png(self, colored_arrows):
         return to_png(self._file, colored_arrows)
 
-    def pre_switch(self):
-        if self._file != 'None':
-            self.view.notify({
-                'func': 'reload_graph',
-                'data': {}
-            })
-
     def file_selected(self, fname):
         self._file = fname if fname else 'None'
         self.view.notify({
@@ -117,18 +131,5 @@ class GreedyController(BaseController):
                     'status': bool(fname),
                     'items': ['all']
                 }
-            }
-        })
-
-    def start(self):
-        fname = self._file
-        origin = self.view.origin
-        destination = self.view.destination
-        path = self.run(fname, origin, destination)
-        # Notify the view
-        self.view.notify({
-            'func': 'display_graph',
-            'data': {
-                'path': path,
             }
         })
