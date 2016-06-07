@@ -8,10 +8,10 @@ class TermDictionary:
         word1_len = len(word1)
         word2_len = len(word2)
 
-        for i in range(word1_len):
+        for i in range(word1_len+1):
             aux_matrix[i][0] = i
 
-        for j in range(word2_len):
+        for j in range(word2_len+1):
             aux_matrix[0][j] = j
 
         for i, ch1 in enumerate(word1, start=1):
