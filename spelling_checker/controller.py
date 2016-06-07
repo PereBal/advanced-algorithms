@@ -1,5 +1,11 @@
+import os
+from functools import partial
+
+from base import BaseController
+from spelling_checker.models import TermDictionary
+
+
 def read(fname, ext, parser, encoding='utf-8'):
-    import os
     if not os.path.exists(fname):
         raise Exception('Unable to locate file {fname}'.format(**locals()))
 
@@ -10,23 +16,67 @@ def read(fname, ext, parser, encoding='utf-8'):
         for line in fd:
             yield parser(line.rstrip('\n'))
 
-def dummy_parser(line):
-    return line
+def upper_parser(line):
+    return line.upper()
 
-def run(text_fname, dict_fname):
-    from functools import partial
-    from models import TermDictionary
+class SpCheckerController(BaseController):
+    def __init__(self, view):
+        super(SpCheckerController, self)
+        self._file = None
+        self._file = os.path.abspath('spelling_checker/data/ES.dic')
+        self._dictionary = None
+        self._dictionary = TermDictionary(list(read(self._file, ext='dic',
+                                              parser=upper_parser,
+                                              encoding='latin1')))
+        self.view = view
 
-    dictionary = TermDictionary(list(read(dict_fname, ext='dic',
-                                          parser=dummy_parser,
-                                          encoding='latin1')))
+    @classmethod
+    def get_instance(cls, view):
+        return cls(view)
 
-    # A little magic to rehuse aux_structs and have a clean function call
-    suggestions = partial(dictionary.suggestions,
-                          aux_list=dictionary.get_aux_list(),
-                          aux_matrix=dictionary.get_aux_matrix())
+    def pre_switch(self):
+        pass
 
-    for line in read(text_fname, ext='txt', parser=dummy_parser):
-        for word in line.split(' '):
-            sug, last = suggestions(word)
-            yield (sorted(sug[:last]), word)
+    def start(self):
+        text = self.view.get_text_lines()
+        if any(text):
+            for suggestions in self.run(text, self._dictionary):
+                if suggestions[0]:
+                    self.view.notify({
+                        'func': 'update_suggestions',
+                        'data': {
+                            'word': suggestions[1],
+                            'suggestions': [suggestion[1]
+                                            for suggestion in suggestions[0]],
+                        }
+                    })
+
+
+    def file_selected(self, fname):
+        self._file = fname if fname else None
+        if self._file:
+            self._dictionary = TermDictionary(list(read(fname, ext='dic',
+                                              parser=upper_parser,
+                                              encoding='latin1')))
+        self.view.notify({
+            'func': 'update_filedata',
+            'data': {
+                'fname': str(self._file),
+                'enable': bool(self._dictionary)
+            }
+        })
+
+    @staticmethod
+    def run(text, term_dictionary):
+        # A little magic to rehuse aux_structs and have a clean function call
+        suggestions = partial(term_dictionary.suggestions,
+                              aux_list=term_dictionary.get_aux_list(),
+                              aux_matrix=term_dictionary.get_aux_matrix())
+
+        for line in text:
+            if line == '':
+                continue
+            line = line.upper()
+            for word in line.split(' '):
+                sug, last = suggestions(word)
+                yield (sorted(sug[:last]), word)

@@ -1,6 +1,9 @@
 class TermDictionary:
-    def __init__(self, items):
+    # A nicer and cleaner approach can be found at:
+    # http://norvig.com/spell-correct.html
+    def __init__(self, items, max_dist=1):
         self.words = items
+        self.max_dist = max_dist
         self._len = len(items)
         self._max_word_len = len(max(items, key=len))+1
 
@@ -34,6 +37,7 @@ class TermDictionary:
 
     def suggestions(self, word, aux_list, aux_matrix):
         i = 0
+
         word_len = len(word)
         for elem in self.words:
             # Pre levenstein filters
@@ -43,7 +47,7 @@ class TermDictionary:
             dist = self._levenstein(aux_matrix, word, elem)
 
             # Post levenstein filters
-            if dist > 2:
+            if dist > self.max_dist:
                 continue
             else:
                 aux_list[i] = (dist, elem)
