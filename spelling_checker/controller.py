@@ -23,11 +23,7 @@ class SpCheckerController(BaseController):
     def __init__(self, view):
         super(SpCheckerController, self)
         self._file = None
-        self._file = os.path.abspath('spelling_checker/data/ES.dic')
         self._dictionary = None
-        self._dictionary = TermDictionary(list(read(self._file, ext='dic',
-                                              parser=upper_parser,
-                                              encoding='latin1')))
         self.view = view
 
     @classmethod
