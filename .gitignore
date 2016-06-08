@@ -19,3 +19,4 @@ __pycache__
 .env
 training_sets
 validation_sets
+pyqtgraph
