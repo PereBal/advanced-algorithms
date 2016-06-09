@@ -1,8 +1,18 @@
 import math
 from collections import namedtuple
+from operator import itemgetter
 
-# XXX OOP YEEEEAAAAA!!! all this just for not using a tuple and a list of
-# tuples
+# Generate samples
+# import json; import random as rnd; rnd.seed();
+# with open('divide_and_conquer/data/example.json', 'w') as f:
+#     json.dump({
+#         'points': [
+#             {
+#                 'x': rnd.randint(0, 1000000),
+#                 'y': rnd.randint(0, 1000000)
+#             } for x in range (10000)
+#         ]
+#     }, f)
 
 class Point(namedtuple('Point', ['x', 'y'])):
     __slots__ = ()
@@ -25,7 +35,6 @@ class SortedPointList(PointList):
     __slots__ = ()
 
     def __init__(self, *args):
-        from operator import itemgetter
         super(SortedPointList, self).__init__(*args)
         # Sort by X-axis
         self.sort(key=itemgetter(0))

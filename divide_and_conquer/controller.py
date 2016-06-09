@@ -1,12 +1,16 @@
+import os
 import math
 import sys
+import time
+import json
 
 from multiprocessing import Process, Queue
-from models import Point, PointList, SortedPointList
+
+from base import BaseController
+
+from divide_and_conquer.models import Point, PointList, SortedPointList
 
 def read(fname):
-    import json
-    import os
     if not os.path.exists(fname):
         raise Exception('Unable to locate file {fname}'.format(**locals()))
 
@@ -19,8 +23,12 @@ def read(fname):
 def parse(data):
     return [Point(**point_tuple) for point_tuple in data['points']]
 
-def min_distance_O2(points):
+def _min_distance_O2(points):
     plen = len(points)
+
+    if plen == 1:
+        return (0, points[0])
+
     min_dist = sys.maxsize-1
     for i, point1 in enumerate(points):
         j = i + 1
@@ -57,7 +65,7 @@ def combine(points, min_set1, min_set2, idxmin, half, idxmax):
         else:
             break
 
-    return min_distance_O2(candidates)
+    return _min_distance_O2(candidates)
 
 def _min_distance_Olog(points, idxmin, idxmax):
     if idxmax - idxmin == 1:
@@ -70,23 +78,100 @@ def _min_distance_Olog(points, idxmin, idxmax):
                        _min_distance_Olog(points, half, idxmax),
                        idxmin, half, idxmax)
 
-def min_distance_Olog(points):
-    return _min_distance_Olog(points, 0, len(points)-1)
+def sample(points, num_samples):
+    import random as rnd
+    rnd.seed()
+    max_len = len(points)-1
+    return [points[rnd.randint(0, max_len)] for p in range(num_samples)]
 
-def run(queue, fname):
-    if mode == 'O2':
-        points_o2 = PointList(parse(read(fname)))
-        return min_distance_O2(points_o2)
-    elif mode == 'Olog':
-        points_olog = SortedPointList(parse(read(fname)))
-        return min_distance_Olog(points_olog)
-    else:
-        raise Exception('bye')
-
-def dispatch(fnames):
-    queue = Queue()
-    for sample, fname in enumerate(fnames):
-        process = Process(target=run, args=(queue, fname))
-        process.start()
+def min_distance_O2(q, points, num_samples):
+    new_points = sample(points, num_samples)
+    tini = time.time()
+    _min_distance_O2(new_points)
+    tend = time.time() - tini
+    q.put(('O2', tend))
+    return None
 
 
+def min_distance_Olog(q, points, num_samples):
+    new_points = sample(points, num_samples)
+    tini = time.time()
+    _min_distance_Olog(new_points, 0, len(new_points)-1)
+    tend = time.time() - tini
+    q.put(('Olog', tend))
+    return None
+
+
+class DCController(BaseController):
+    def __init__(self, view, max_samples):
+        super(DCController, self)
+        self._file = None
+        self.max_samples = max_samples
+        self.view = view
+
+    @classmethod
+    def get_instance(cls, view, max_samples):
+        return cls(view)
+
+    def pre_switch(self):
+        pass
+
+    def start(self):
+        _points = parse(read(self._file))
+        self.view.notify({
+            'func': 'update_graphic',
+            'data': {
+                'num_samples': 0,
+                'time_O2': [],
+                'time_Olog': [],
+            }
+        })
+
+        # With more than 4000 samples takes about 20seconds and so on, enough
+        # with this
+        #for num_samples in range(500, min(len(_points), 3500), 500):
+        for num_samples in range(500, min(len(_points), self.max_samples), 250):
+            t_o2, t_olog = self.run(_points, num_samples)
+            self.view.notify({
+                'func': 'update_graphic',
+                'data': {
+                    'num_samples': num_samples,
+                    'time_O2': t_o2,
+                    'time_Olog': t_olog,
+                }
+            })
+
+        self.view.notify({
+            'func': 'plot_graphic',
+            'data': {}
+        })
+
+    @staticmethod
+    def run(points, num_samples):
+        q = Queue()
+
+        procs = (
+            Process(target=min_distance_O2, args=(q, points, num_samples)),
+            Process(target=min_distance_Olog, args=(q, points, num_samples)),
+        )
+
+        for proc in procs:
+            proc.start()
+
+        res1 = q.get()
+        res2 = q.get()
+
+        e0 = res1[1] if res1[0] == 'O2' else res2[1]
+        e1 = res2[1] if res2[0] == 'Olog' else res1[1]
+
+        return (e0, e1)
+
+    def file_selected(self, fname):
+        self._file = fname if fname else None
+        self.view.notify({
+            'func': 'update_filedata',
+            'data': {
+                'fname': str(self._file),
+                'enable': bool(self._file),
+            }
+        })
