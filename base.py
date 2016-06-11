@@ -19,6 +19,10 @@ class BaseWidgetView(QtWidgets.QWidget):
 
         func(**kwargs.pop('data'))
 
+    def display_error(self, cls='Error', level=0, message=''):
+        dialog = QtWidgets.QErrorMessage(parent=self)
+        dialog.showMessage('{cls}-{level}: {message}'.format(**locals()))
+
     @classmethod
     @abc.abstractmethod
     def as_view(cls, parent, *args, **kwargs):
