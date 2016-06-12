@@ -3,7 +3,7 @@ def set_environment():
     import os
     import sys
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        '.env', 'py', 'lib')
+                        '.env', 'lib')
     if os.path.exists(env_path):
         major, minor = sys.version_info.major, sys.version_info.minor
         zip_path = os.path.join(env_path,
